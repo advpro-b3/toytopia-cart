@@ -62,7 +62,7 @@ jobs:
       # Step 8: Authenticate to google cloud
       - uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: '${{ secrets.SSH_KEY }}'
+          credentials_json: '${{ secrets.GCP_SA }}'
 
       # Step 9: Deploy our app to google cloud
       - id: 'deploy'
