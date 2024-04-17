@@ -73,9 +73,9 @@ jobs:
           image: '${{ secrets.REGISTRY_USER }}/toytopia-cart:latest'
           env_vars: |
             SPRING_DATASOURCE_DRIVER-CLASS-NAME=org.postgresql.Driver
-            SPRING_DATASOURCE_PASSWORD=${{ secrets.JBDC_DATABASE_PASSWORD }}
-            SPRING_DATASOURCE_USERNAME=${{ secrets.JBDC_DATABASE_USERNAME }}
-            SPRING_DATASOURCE_URL=jdbc:postgresql://${{ secrets.JBDC_DATABASE_URL }}/postgres
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.JDBC_DATABASE_PASSWORD }}
+            SPRING_DATASOURCE_USERNAME=${{ secrets.JDBC_DATABASE_USERNAME }}
+            SPRING_DATASOURCE_URL=jdbc:postgresql://${{ secrets.JDBC_DATABASE_URL }}/postgres
 
 #jobs:
 #  build:
