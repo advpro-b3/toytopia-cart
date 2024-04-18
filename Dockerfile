@@ -1,4 +1,5 @@
-FROM gradle:jdk17-alpine
+FROM adoptopenjdk:21-jre-hotspot
+
 ARG PRODUCTION
 ARG JDBC_DATABASE_PASSWORD
 ARG JDBC_DATABASE_URL
