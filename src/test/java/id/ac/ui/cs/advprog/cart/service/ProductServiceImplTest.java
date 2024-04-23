@@ -25,7 +25,7 @@ class ProductServiceImplTest {
     ProductRepository productRepository;
 
     @InjectMocks
-    ProductService productService;
+    private ProductServiceImpl productService;
 
     List<Product> products;
 
@@ -40,7 +40,6 @@ class ProductServiceImplTest {
         product1.setDiscount(10);
         product1.setAvailability(Availability.READY.getValue());
         products.add(product1);
-        when(productRepository.create(product1)).thenReturn(product1);
 
         Product product2 = new Product();
         product2.setName("Hot Wheels Pajero SS");
@@ -50,7 +49,6 @@ class ProductServiceImplTest {
         product2.setDiscount(10);
         product2.setAvailability(Availability.READY.getValue());
         products.add(product2);
-        when(productRepository.create(product2)).thenReturn(product2);
     }
 
     @Test
