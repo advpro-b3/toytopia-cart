@@ -29,4 +29,52 @@ public class CartItemTest {
             cartItem.setQuantity(0);
         });
     }
+
+    @Test
+    public void testCartItemBuilder() {
+        Long id = 1L;
+        String productId = "P123";
+        String name = "Test Product";
+        int quantity = 2;
+        double price = 10.99;
+
+        CartItem cartItem = new CartItemBuilder()
+                .withId(id)
+                .withProductId(productId)
+                .withName(name)
+                .withQuantity(quantity)
+                .withPrice(price)
+                .build();
+
+        // Verify that the CartItem is constructed correctly
+        assertEquals(id, cartItem.getId());
+        assertEquals(productId, cartItem.getProductId());
+        assertEquals(name, cartItem.getName());
+        assertEquals(quantity, cartItem.getQuantity());
+        assertEquals(price, cartItem.getPrice(), 0.001); // Use delta for double comparison
+    }
+
+
+    @Test
+    public void testCartItemBuilderSetZeroQuantity() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CartItemBuilder().withQuantity(0).build();
+        });
+    }
+
+    @Test
+    public void testCartItemBuilderWithNegativePrice() {
+        // Test building with a negative price
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CartItemBuilder().withPrice(-10.99).build();
+        });
+    }
+
+    @Test
+    public void testCartItemBuilderWithNegativeQuantity() {
+        // Test building with a negative quantity
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CartItemBuilder().withQuantity(-2).build();
+        });
+    }
 }
