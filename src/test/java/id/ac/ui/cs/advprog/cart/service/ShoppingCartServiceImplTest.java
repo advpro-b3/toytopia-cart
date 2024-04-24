@@ -90,4 +90,5 @@ public class ShoppingCartServiceImplTest {
 
         verify(shoppingCartRepository, times(1)).deleteById(shoppingCart.getUserId());
     }
+
 }

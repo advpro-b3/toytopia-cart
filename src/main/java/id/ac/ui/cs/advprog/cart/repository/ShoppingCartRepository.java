@@ -31,5 +31,14 @@ public class ShoppingCartRepository {
     public List<ShoppingCart> findAll() {
         return new ArrayList<>(shoppingCartData.values());
     }
+
+    public ShoppingCart update(Long userId, ShoppingCart updatedShoppingCart) {
+        ShoppingCart existingCart = shoppingCartData.get(userId);
+        if (existingCart != null) {
+            shoppingCartData.put(userId, updatedShoppingCart);
+            return updatedShoppingCart;
+        }
+        return null;
+    }
 }
 
