@@ -18,7 +18,7 @@ public class ShoppingCartController {
         this.shoppingCartService = shoppingCartService;
     }
 
-    @GetMapping("/all-cart")
+    @GetMapping("/all")
     public ResponseEntity<List<ShoppingCart>> getAll() {
         List<ShoppingCart> all = shoppingCartService.findAll();
         if (all != null) {
@@ -28,7 +28,7 @@ public class ShoppingCartController {
         }
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/cart-{userId}")
     public ResponseEntity<ShoppingCart> getByUserId(@PathVariable(name = "userId") Long userId) {
         ShoppingCart shoppingCart = shoppingCartService.findById(userId);
         if (shoppingCart != null) {
@@ -38,7 +38,7 @@ public class ShoppingCartController {
         }
     }
 
-    @PostMapping("/create-cart")
+    @PostMapping("/create")
     public ResponseEntity<ShoppingCart> create(@RequestBody ShoppingCart shoppingCart) {
         ShoppingCart created = shoppingCartService.create(shoppingCart);
         if (created != null) {
@@ -48,7 +48,7 @@ public class ShoppingCartController {
         }
     }
 
-    @PutMapping("/edit-cart")
+    @PutMapping("/edit")
     public ResponseEntity<ShoppingCart> edit(@RequestBody ShoppingCart shoppingCart) {
         ShoppingCart edited = shoppingCartService.edit(shoppingCart);
         if (edited != null) {
@@ -58,7 +58,7 @@ public class ShoppingCartController {
         }
     }
 
-    @DeleteMapping("/delete-cart/{userId}")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<ShoppingCart> delete(@PathVariable(name = "userId") Long userId) {
         ShoppingCart shoppingCart = new ShoppingCart();
         shoppingCart.setUserId(userId);
