@@ -11,7 +11,7 @@ class ShoppingCartTest {
 
     @BeforeEach
     void setUp() {
-        shoppingCart = new ShoppingCart();
+        shoppingCart = new ShoppingCartBuilder().build();
     }
 
     @Test
@@ -61,5 +61,6 @@ class ShoppingCartTest {
         assertEquals(0, shoppingCart.getCartItemMap().size());
         assertNull(shoppingCart.getCartItemMap().get("123"));
     }
+
 
 }
