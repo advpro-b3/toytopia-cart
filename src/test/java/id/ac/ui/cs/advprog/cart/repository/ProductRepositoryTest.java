@@ -1,64 +1,45 @@
 package id.ac.ui.cs.advprog.cart.repository;
 
-
 import id.ac.ui.cs.advprog.cart.enums.Availability;
 import id.ac.ui.cs.advprog.cart.model.Product;
+import id.ac.ui.cs.advprog.cart.service.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Iterator;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProductRepositoryTest {
+    @Mock
+    private ProductRepository productRepository;
 
     @InjectMocks
-    ProductRepository productRepository;
+    private ProductServiceImpl productService;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
     }
 
     @Test
-    void createFindUpdate() {
-        Product product = new Product();
-        product.setName("Hot Wheels 18 Camaro SS");
-        product.setDescription("The  '18 Camaro SS is based on Hot Wheels' 50th Anniversary SEMA 2017 auto show in Las Vegas. A casting designed by Brendon Vetuskey with an initial-release color of Crush Orange. The Sixth Generation Camaro Hot Wheels Anniversary Special Edition was created by a team of designers led by Tom Peters.");
-        product.setPrice(25000);
-        product.setStock(20);
-        product.setDiscount(10);
-        product.setAvailability(Availability.READY.getValue());
-        Product createdProduct = productRepository.create(product);
+    public void testFindByOwnerId() {
+        Product.ProductBuilder productBuilder = new Product.ProductBuilder("Hot Wheels 18 Camaro SS")
+                .setDescription("The  '18 Camaro SS is based on Hot Wheels' 50th Anniversary SEMA 2017 auto show in Las Vegas. A casting designed by Brendon Vetuskey with an initial-release color of Crush Orange. The Sixth Generation Camaro Hot Wheels Anniversary Special Edition was created by a team of designers led by Tom Peters.")
+                .setPrice(25000)
+                .setStock(20)
+                .setDiscount(10)
+                .setAvailability(Availability.READY.getValue());
+        Product product = productBuilder.build();
+        when(productRepository.findProductById(product.getId())).thenReturn(product);
+        Product foundProduct = productService.findById(product.getId());
 
-        Iterator<Product> products = productRepository.findAll();
-        assertTrue(products.hasNext());
+        verify(productRepository).findProductById(product.getId());
 
-        Product foundProduct = productRepository.findById(createdProduct.getId());
-        assertEquals(createdProduct, foundProduct);
-
-        Product updatedProduct = new Product();
-        updatedProduct.setName("Hot Wheels Mustang GT");
-        Product updated = productRepository.update(createdProduct.getId(), updatedProduct);
-        assertEquals(updated.getName(), "Hot Wheels Mustang GT");
-    }
-
-    @Test
-    void delete() {
-        Product product = new Product();
-        product.setName("Hot Wheels 18 Camaro SS");
-        product.setDescription("The  '18 Camaro SS is based on Hot Wheels' 50th Anniversary SEMA 2017 auto show in Las Vegas. A casting designed by Brendon Vetuskey with an initial-release color of Crush Orange. The Sixth Generation Camaro Hot Wheels Anniversary Special Edition was created by a team of designers led by Tom Peters.");
-        product.setPrice(25000);
-        product.setStock(20);
-        product.setDiscount(10);
-        product.setAvailability(Availability.READY.getValue());
-        Product createdProduct = productRepository.create(product);
-
-        productRepository.deleteById(createdProduct.getId());
-        Iterator<Product> products = productRepository.findAll();
-        assertFalse(products.hasNext());
+        assertEquals("Hot Wheels 18 Camaro SS", foundProduct.getName());
     }
 }

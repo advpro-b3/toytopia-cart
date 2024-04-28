@@ -16,4 +16,8 @@ public class ShoppingCart {
         this.cartItemMap = new HashMap<>();
     }
 
+    public void addItem(CartItem item) {
+        cartItemMap.put(item.getProductId(), item);
+    }
+
 }

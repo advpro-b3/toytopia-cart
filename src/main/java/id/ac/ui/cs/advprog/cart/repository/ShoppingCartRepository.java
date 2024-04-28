@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.cart.repository;
 
+import id.ac.ui.cs.advprog.cart.model.CartItem;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 import org.springframework.stereotype.Repository;
 
@@ -39,6 +40,13 @@ public class ShoppingCartRepository {
             return updatedShoppingCart;
         }
         return null;
+    }
+
+    public void addItem(Long userId, CartItem item) {
+        ShoppingCart cart = shoppingCartData.get(userId);
+        if (cart != null) {
+            cart.addItem(item);
+        }
     }
 }
 
