@@ -16,8 +16,8 @@ public class ShoppingCartBuilder {
         return this;
     }
 
-    public ShoppingCartBuilder withCartItem(String productId, CartItem item) {
-        cartItemMap.put(productId, item);
+    public ShoppingCartBuilder withCartItem(Map<String, CartItem> cartItemMap) {
+        this.cartItemMap = cartItemMap;
         return this;
     }
 

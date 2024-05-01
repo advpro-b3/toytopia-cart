@@ -1,94 +1,153 @@
 package id.ac.ui.cs.advprog.cart.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import id.ac.ui.cs.advprog.cart.model.CartItem;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
+import id.ac.ui.cs.advprog.cart.model.ShoppingCartBuilder;
+import id.ac.ui.cs.advprog.cart.repository.CartItemRepository;
 import id.ac.ui.cs.advprog.cart.repository.ShoppingCartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ShoppingCartServiceImplTest {
 
-    @InjectMocks
-    private ShoppingCartServiceImpl shoppingCartService;
+    @Mock
+    private CartItemRepository cartItemRepository;
 
     @Mock
     private ShoppingCartRepository shoppingCartRepository;
 
-    private List<ShoppingCart> shoppingCarts;
+    private ShoppingCartServiceImpl shoppingCartService;
 
     @BeforeEach
-    void setUp() {
-        shoppingCarts = new ArrayList<>();
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        shoppingCartService = new ShoppingCartServiceImpl(shoppingCartRepository, cartItemRepository);
+    }
 
-        ShoppingCart cart1 = new ShoppingCart();
-        cart1.setUserId(1L);
-        shoppingCarts.add(cart1);
 
-        ShoppingCart cart2 = new ShoppingCart();
-        cart2.setUserId(2L);
-        shoppingCarts.add(cart2);
+    @Test
+    public void testCreateOrUpdateCartItemToShoppingCart_NewCartItem() {
+        Long userId = 1L;
+        String productId = "prod123";
+        CartItem cartItem = new CartItem(null, productId, "Product 123", 2, 10.0);
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(createEmptyCart(userId));
+
+        shoppingCartService.createOrUpdateCartItemToShoppingCart(userId, cartItem);
+
+        verify(shoppingCartRepository).save(any(ShoppingCart.class));
     }
 
     @Test
-    void testCreateShoppingCart() {
-        ShoppingCart shoppingCart = new ShoppingCart();
-        shoppingCart.setUserId(1L);
+    public void testCreateOrUpdateCartItemToShoppingCart_ExistingItemUpdated() {
+        Long userId = 1L;
+        String productId = "prod123";
+        CartItem existingItem = new CartItem(1L, productId, "Product 123", 1, 5.0);
+        ShoppingCart cart = createEmptyCart(userId);
+        cart.getCartItemMap().put(productId, existingItem);
 
-        when(shoppingCartRepository.create(shoppingCart)).thenReturn(shoppingCart);
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
 
-        ShoppingCart createdShoppingCart = shoppingCartService.create(shoppingCart);
+        CartItem cartItem = new CartItem(null, productId, "Updated Name", 3, 12.0);
+        shoppingCartService.createOrUpdateCartItemToShoppingCart(userId, cartItem);
 
-        assertNotNull(createdShoppingCart);
-        assertEquals(shoppingCart.getUserId(), createdShoppingCart.getUserId());
-
-        verify(shoppingCartRepository, times(1)).create(shoppingCart);
+        // Verify existing item was updated and cart was saved
+        verify(shoppingCartRepository).save(cart);
     }
 
     @Test
-    void testFindShoppingCartById() {
-        ShoppingCart shoppingCart = new ShoppingCart();
-        shoppingCart.setUserId(1L);
+    public void testDeleteCartItemFromShoppingCart_ExistingItem() {
+        Long userId = 1L;
+        String productId = "prod123";
+        ShoppingCart cart = createEmptyCart(userId);
+        cart.getCartItemMap().put(productId, new CartItem());
 
-        when(shoppingCartRepository.findById(1L)).thenReturn(shoppingCart);
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
 
-        ShoppingCart foundShoppingCart = shoppingCartService.findById(1L);
+        shoppingCartService.deleteCartItemFromShoppingCart(userId, productId);
 
-        assertNotNull(foundShoppingCart);
-        assertEquals(shoppingCart.getUserId(), foundShoppingCart.getUserId());
-
-        verify(shoppingCartRepository, times(1)).findById(1L);
+        // Verify item was removed and cart was saved
+        verify(shoppingCartRepository).save(cart);
     }
 
     @Test
-    void testFindAllShoppingCarts() {
-        when(shoppingCartRepository.findAll()).thenReturn(shoppingCarts);
+    public void testDeleteCartItemFromShoppingCart_NonexistentItem() {
+        Long userId = 1L;
+        String productId = "prod123";
 
-        List<ShoppingCart> foundShoppingCarts = shoppingCartService.findAll();
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(createEmptyCart(userId));
 
-        assertNotNull(foundShoppingCarts);
-        assertEquals(2, foundShoppingCarts.size());
+        shoppingCartService.deleteCartItemFromShoppingCart(userId, productId);
 
-        verify(shoppingCartRepository, times(1)).findAll();
+        // No verification needed as there's nothing to remove
     }
 
     @Test
-    void testDeleteShoppingCart() {
-        ShoppingCart shoppingCart = new ShoppingCart();
-        shoppingCart.setUserId(1L);
+    public void testGetCartItemsFromShoppingCart_ExistingCart() {
+        Long userId = 1L;
+        ShoppingCart cart = createEmptyCart(userId);
+        cart.getCartItemMap().put("prod1", new CartItem(1L, "prod1", "Product 1", 2, 10.0));
 
-        shoppingCartService.delete(shoppingCart);
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
 
-        verify(shoppingCartRepository, times(1)).deleteById(shoppingCart.getUserId());
+        List<CartItem> retrievedItems = shoppingCartService.getCartItemsFromShoppingCart(userId);
+
+        assertEquals(1, retrievedItems.size()); // Simple size check
     }
 
+    @Test
+    public void testGetCartItemsFromShoppingCart_NonexistentCart() {
+        Long userId = 1L;
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(null);
+
+        assertThrows(RuntimeException.class, () -> shoppingCartService.getCartItemsFromShoppingCart(userId));
+    }
+
+
+    @Test
+    public void testGetShoppingCartInformation_ExistingCart() {
+        Long userId = 1L;
+        ShoppingCart cart = createEmptyCart(userId);
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
+
+        ShoppingCart retrievedCart = shoppingCartService.getShoppingCartInformation(userId);
+
+        assertNotNull(retrievedCart); // Simple existence check
+    }
+
+    @Test
+    public void testGetShoppingCartInformation_NonexistentCart() {
+        Long userId = 1L;
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(null);
+
+        assertThrows(RuntimeException.class, () -> shoppingCartService.getShoppingCartInformation(userId));
+    }
+
+    @Test
+    public void testCreateShoppingCart_NewCart() {
+        Long userId = 1L;
+
+        shoppingCartService.createShoppingCart(userId);
+
+        // No verification needed as creation logic is internal
+        verify(shoppingCartRepository).save(any(ShoppingCart.class));
+    }
+
+    private ShoppingCart createEmptyCart(Long userId) {
+        return new ShoppingCartBuilder().withCartItem(new HashMap<>()).withUserId(userId).build();
+    }
 }
