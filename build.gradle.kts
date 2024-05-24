@@ -6,6 +6,16 @@ plugins {
     id("org.sonarqube") version "4.4.1.3373"
 }
 
+sonar {
+    properties {
+        property("sonar.projectKey", "shanahandnlf-adpro-b3-cart")
+        property("sonar.organization", "shanahandnlf")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.junit.reportPaths", "$buildDir/test-results/test")
+        property("sonar.jacoco.reportPaths", "$buildDir/jacoco/test.exec")
+    }
+}
+
 group = "id.ac.ui.cs.advprog"
 version = "0.0.1-SNAPSHOT"
 
@@ -37,8 +47,8 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
 
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.seleniumhq.selenium:selenium-java:$seleniumJavaVersion")
     testImplementation("io.github.bonigarcia:selenium-jupiter:$seleniumJupiterVersion")
     testImplementation("io.github.bonigarcia:webdrivermanager:$webdrivermanagerVersion")
@@ -46,6 +56,8 @@ dependencies {
     testImplementation("com.h2database:h2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
+
+
 
 tasks.register<Test>("unitTest") {
     description = "Runs unit tests."
@@ -77,5 +89,9 @@ tasks.test{
 }
 
 tasks.jacocoTestReport{
+    reports {
+        xml.required = true
+        html.required = true
+    }
     dependsOn(tasks.test)
 }
