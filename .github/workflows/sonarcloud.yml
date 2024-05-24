@@ -1,0 +1,32 @@
+name: SonarCloud Plugin Analysis
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out the Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Java toolchain
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: gradle
+
+      - name: Set execute permission on gradlew
+        run: chmod +x gradlew
+
+      - name: Build and Run Jacoco Tests
+        run: ./gradlew build test jacocoTestReport
+
+      - name: Build and SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonarqube -Dsonar.projectKey=shanahandnlf-adpro-b3-cart -Dsonar.organization=shanahandnlf -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
+
