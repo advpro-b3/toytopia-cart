@@ -9,10 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -35,15 +32,18 @@ public class CartAPIController {
 
     @GetMapping("/data/{userId}")
     public ResponseEntity<Object> getShoppingCartInformation(@PathVariable Long userId) {
+
         ShoppingCart cart = shoppingCartService.getShoppingCartInformation(userId);
         Map<String, Object> response = new HashMap<>();
         String message = "Successfully retrieved shopping cart data";
         response.put("message", message);
+        response.put("userId", cart.getUserId());
         if (cart != null) {
             Map<String, CartItem> cartItems = cart.getCartItemMap();
             response.put("cartItems", cartItems);
             response.put("totalPrice", cart.calculateTotalPrice());
         } else {
+            response.put("userId", userId);
             response.put("cartItems", new HashMap<>());
             response.put("totalPrice", 0.0);
         }
@@ -51,7 +51,7 @@ public class CartAPIController {
     }
 
 
-    // delete
+
 
     @DeleteMapping("/delete/{userId}/{productId}")
     public ResponseEntity<Object> deleteCartItem(
@@ -86,20 +86,112 @@ public class CartAPIController {
             @RequestBody JsonNode requestBody
     ) {
         String productId = requestBody.get("productId").asText();
-        String name = requestBody.get("name").asText();
-        double price = requestBody.get("price").asDouble();
         int quantity = requestBody.get("quantity").asInt();
 
-        CartItem cartItem = new CartItem();
-        cartItem.setProductId(productId);
-        cartItem.setName(name);
-        cartItem.setPrice(price);
-        cartItem.setQuantity(quantity);
-        shoppingCartService.createOrUpdateCartItemToShoppingCart(userId, cartItem);
-
+        ShoppingCart cart = shoppingCartService.getShoppingCartInformation(userId);
         Map<String, Object> response = new HashMap<>();
-        String message = "Item updated successfully";
-        response.put("message", message);
-        return ResponseEntity.ok(response);
+
+        if (cart != null) {
+            CartItem item = cart.getCartItemMap().get(productId);
+            if (item != null) {
+                item.setQuantity(quantity);
+                shoppingCartService.updateShoppingCart(cart);
+                response.put("message", "Item updated successfully");
+                response.put("userId", userId);
+                response.put("productId", productId);
+                response.put("quantity", quantity);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Item not found in cart");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } else {
+            response.put("message", "Shopping cart not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
+
+    @PutMapping("/updateAll/{userId}")
+    public ResponseEntity<Object> updateAllCartItems(
+            @PathVariable Long userId,
+            @RequestBody JsonNode requestBody
+    ) {
+        ShoppingCart cart = shoppingCartService.getShoppingCartInformation(userId);
+        Map<String, Object> response = new HashMap<>();
+
+        if (cart != null) {
+            JsonNode cartItemMap = requestBody.get("cartItemMap");
+            if (cartItemMap != null && cartItemMap.isObject()) {
+                Iterator<Map.Entry<String, JsonNode>> fields = cartItemMap.fields();
+                while (fields.hasNext()) {
+                    Map.Entry<String, JsonNode> field = fields.next();
+                    JsonNode cartItemNode = field.getValue();
+                    String productId = cartItemNode.get("productId").asText();
+                    int quantity = cartItemNode.get("quantity").asInt();
+
+                    CartItem item = cart.getCartItemMap().get(productId);
+                    if (item != null) {
+                        item.setQuantity(quantity);
+                    } else {
+                        response.put("message", "Item with productId " + productId + " not found in cart");
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    }
+                }
+                shoppingCartService.updateShoppingCart(cart);
+                response.put("message", "All items updated successfully");
+                response.put("userId", userId);
+                response.put("updatedItems", cartItemMap);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Invalid request body format");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } else {
+            response.put("message", "Shopping cart not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @PutMapping("/addItem/{userId}")
+    public ResponseEntity<Object> addItemToCart(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> requestBody
+    ) {
+        String productId = (String) requestBody.get("productId");
+        String productName = (String) requestBody.get("name");
+        int quantity = (int) requestBody.get("quantity");
+        double price = (double) requestBody.get("price");
+
+        ShoppingCart cart = shoppingCartService.getShoppingCartInformation(userId);
+        Map<String, Object> response = new HashMap<>();
+
+        if (cart != null) {
+            CartItem item = cart.getCartItemMap().get(productId);
+            if (item != null) {
+
+                item.setQuantity(item.getQuantity() + quantity);
+            } else {
+
+                Long id = (long) cart.getCartItemMap().size();
+
+
+                item = new CartItem(id++, productId, productName, quantity, price);
+                cart.getCartItemMap().put(productId, item);
+            }
+            shoppingCartService.updateShoppingCart(cart);
+            response.put("message", "Item added to cart successfully");
+            response.put("userId", userId);
+            response.put("productId", productId);
+            response.put("name", productName); 
+            response.put("quantity", quantity);
+            response.put("price", price);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("message", "Shopping cart not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+
 }
+
