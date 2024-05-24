@@ -1,0 +1,8 @@
+scrape_configs:
+  - job_name: 'Cart-Toytopia-Prometheus'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 3s
+    static_configs:
+      - targets: ['host.docker.internal:3031']
+        labels:
+          application: 'cart'
