@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import org.springframework.web.client.RestTemplate;
 
 @Setter
 @Getter
@@ -25,6 +26,7 @@ public class ShoppingCart {
 
     public ShoppingCart() {
         this.cartItemMap = new HashMap<>();
+        this.voucherService = new VoucherService(new RestTemplate());
     }
 
     public void addItem(CartItem item) {

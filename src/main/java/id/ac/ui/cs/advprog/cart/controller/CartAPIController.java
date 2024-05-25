@@ -39,6 +39,7 @@ public class CartAPIController {
 
         response.put("message", message);
         response.put("userId", userId);
+        response.put("voucherCode", voucherCode);
 
         if (cart != null) {
             Map<String, CartItem> cartItems = cart.getCartItemMap();
