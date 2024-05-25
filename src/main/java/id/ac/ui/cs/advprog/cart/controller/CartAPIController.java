@@ -31,25 +31,26 @@ public class CartAPIController {
 
 
     @GetMapping("/data/{userId}")
-    public ResponseEntity<Object> getShoppingCartInformation(@PathVariable Long userId) {
-
+    public ResponseEntity<Object> getShoppingCartInformation(@PathVariable Long userId,
+                                                             @RequestParam(required = false) String voucherCode) {
         ShoppingCart cart = shoppingCartService.getShoppingCartInformation(userId);
         Map<String, Object> response = new HashMap<>();
         String message = "Successfully retrieved shopping cart data";
+
         response.put("message", message);
-        response.put("userId", cart.getUserId());
+        response.put("userId", userId);
+
         if (cart != null) {
             Map<String, CartItem> cartItems = cart.getCartItemMap();
             response.put("cartItems", cartItems);
-            response.put("totalPrice", cart.calculateTotalPrice());
+            response.put("totalPrice", cart.calculateTotalPrice(voucherCode));
         } else {
-            response.put("userId", userId);
             response.put("cartItems", new HashMap<>());
             response.put("totalPrice", 0.0);
         }
+
         return ResponseEntity.ok(response);
     }
-
 
 
 
