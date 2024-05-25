@@ -49,6 +49,13 @@ public class ShoppingCart {
                 Double maxDiscount = (Double) voucher.get("maxDiscount");
                 Double minPurchase = (Double) voucher.get("minPurchase");
 
+                if (minPurchase == null) {
+                    minPurchase = 0.0;
+                }
+                if (maxDiscount == null) {
+                    maxDiscount = Double.MAX_VALUE;
+                }
+
                 if (total >= minPurchase) {
                     double discountAmount = total * discount / 100;
                     discountAmount = Math.min(discountAmount, maxDiscount);
