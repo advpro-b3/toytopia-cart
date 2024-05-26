@@ -12,7 +12,7 @@ public interface ShoppingCartService {
 
     void deleteCartItemFromShoppingCart(Long userId, String productId);
     List <CartItem> getCartItemsFromShoppingCart(Long userId);
-    void createShoppingCart(Long userId);
+    ShoppingCart createShoppingCart(Long userId);
 
     ShoppingCart getShoppingCartInformation(Long userId);
     ShoppingCart updateShoppingCart(ShoppingCart shoppingCart);
