@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import id.ac.ui.cs.advprog.cart.model.CartItem;
+import id.ac.ui.cs.advprog.cart.model.Product;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCartBuilder;
 import id.ac.ui.cs.advprog.cart.repository.CartItemRepository;
@@ -17,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @ExtendWith(MockitoExtension.class)
 public class ShoppingCartServiceImplTest {
@@ -116,26 +119,7 @@ public class ShoppingCartServiceImplTest {
     }
 
 
-    @Test
-    public void testGetShoppingCartInformation_ExistingCart() {
-        Long userId = 1L;
-        ShoppingCart cart = createEmptyCart(userId);
 
-        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
-
-        ShoppingCart retrievedCart = shoppingCartService.getShoppingCartInformation(userId);
-
-        assertNotNull(retrievedCart); // Simple existence check
-    }
-
-    @Test
-    public void testGetShoppingCartInformation_NonexistentCart() {
-        Long userId = 1L;
-
-        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(null);
-
-        assertThrows(RuntimeException.class, () -> shoppingCartService.getShoppingCartInformation(userId));
-    }
 
     @Test
     public void testCreateShoppingCart_NewCart() {
@@ -143,11 +127,81 @@ public class ShoppingCartServiceImplTest {
 
         shoppingCartService.createShoppingCart(userId);
 
-        // No verification needed as creation logic is internal
         verify(shoppingCartRepository).save(any(ShoppingCart.class));
     }
 
     private ShoppingCart createEmptyCart(Long userId) {
         return new ShoppingCartBuilder().withCartItem(new HashMap<>()).withUserId(userId).build();
     }
+
+
+    @Test
+    void testAddItemToCart_NewProduct() {
+        Long userId = 1L;
+        Product product = new Product.ProductBuilder("P123")
+                .setPrice(10)
+                .build(); // Use the builder to create the product
+        ShoppingCart cart = createEmptyCart(userId);
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
+
+        CartItem addedItem = shoppingCartService.addItemToCart(userId, product);
+
+        assertEquals(product.getId(), addedItem.getProductId());
+        assertEquals(product.getName(), addedItem.getName());
+        assertEquals(product.getPrice(), addedItem.getPrice());
+        assertEquals(1, addedItem.getQuantity());
+
+        verify(shoppingCartRepository).save(cart);
+    }
+
+    @Test
+    void testAddItemToCart_ExistingProduct() {
+        Long userId = 1L;
+        String productId = "P123";
+        Product product = new Product.ProductBuilder(productId)
+                .setPrice(10)
+                .build();
+        ShoppingCart cart = createEmptyCart(userId);
+        cart.getCartItemMap().put(productId, new CartItem(1L, productId, "Test Product", 1, 10));
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
+
+        CartItem addedItem = shoppingCartService.addItemToCart(userId, product);
+
+        assertEquals(1, addedItem.getQuantity());
+
+        verify(shoppingCartRepository).save(cart);
+    }
+
+    @Test
+    void testGetShoppingCartInformation_ValidCart() {
+        Long userId = 1L;
+        ShoppingCart cart = createEmptyCart(userId);
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
+
+        CompletableFuture<ShoppingCart> futureCart = shoppingCartService.getShoppingCartInformation(userId);
+
+        assertDoesNotThrow(() -> {
+            ShoppingCart retrievedCart = futureCart.get(); // Blocking call to get the result
+            assertNotNull(retrievedCart);
+            assertEquals(userId, retrievedCart.getUserId());
+        });
+    }
+
+    @Test
+    void testGetShoppingCartInformation_NullCart() {
+        Long userId = 1L;
+
+        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(null);
+
+        CompletableFuture<ShoppingCart> futureCart = shoppingCartService.getShoppingCartInformation(userId);
+
+        assertThrows(ExecutionException.class, () -> {
+            futureCart.get(); // Blocking call to get the result
+        });
+    }
+
+
 }

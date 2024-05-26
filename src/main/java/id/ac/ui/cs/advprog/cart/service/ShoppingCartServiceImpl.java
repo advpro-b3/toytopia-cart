@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.cart.service;
 
 import id.ac.ui.cs.advprog.cart.model.CartItem;
+import id.ac.ui.cs.advprog.cart.model.Product;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCartBuilder;
 import id.ac.ui.cs.advprog.cart.repository.CartItemRepository;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ShoppingCartServiceImpl implements ShoppingCartService {
@@ -37,7 +39,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public CartItem createOrUpdateCartItemToShoppingCart(Long userId, CartItem cartItem) {
-//        ShoppingCart cart = findShoppingCartByUserId(Long userId);
         ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
         CartItem existingItem = cart.getCartItemMap().get(cartItem.getProductId());
 
@@ -71,23 +72,56 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return new ArrayList<>(cart.getCartItemMap().values());
     }
 
+
     @Override
-    public ShoppingCart getShoppingCartInformation(Long userId) {
-        ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
-        if (cart == null) {
-            throw new RuntimeException("No shopping cart found for user with ID " + userId);
-        }
-        return cart;
+    public CompletableFuture<ShoppingCart> getShoppingCartInformation(Long userId) {
+        return CompletableFuture.supplyAsync(() -> {
+            ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
+            if (cart == null) {
+                throw new RuntimeException("No shopping cart found for user with ID " + userId);
+            }
+            return cart;
+        });
     }
 
     @Override
-    public void createShoppingCart(Long userId) {
+    public ShoppingCart createShoppingCart(Long userId) {
+        if (shoppingCartRepository.existsById(userId)) {
+            return null;
+        }
+
         ShoppingCart cart = new ShoppingCartBuilder()
                 .withCartItem(new HashMap<>())
                 .withUserId(userId)
                 .build();
-        shoppingCartRepository.save(cart);
+
+        return shoppingCartRepository.save(cart);
     }
+
+    @Override
+    public CartItem addItemToCart(Long userId, Product product) {
+        ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
+        if (cart == null) {
+            throw new IllegalArgumentException("Shopping cart not found for user ID: " + userId);
+        }
+
+        CartItem existingItem = cart.getCartItemMap().get(product.getId());
+
+        if (existingItem == null) {
+            Long newId = (long) cart.getCartItemMap().size() + 1;
+            CartItem newItem = new CartItem(newId, product.getId(), product.getName(), 1, product.getPrice());
+            newItem.setShoppingCart(cart);
+            cart.getCartItemMap().put(product.getId(), newItem);
+            shoppingCartRepository.save(cart);
+            return newItem;
+        } else {
+            existingItem.setQuantity(existingItem.getQuantity() + 1);
+            shoppingCartRepository.save(cart);
+            return existingItem;
+        }
+    }
+
+
 
 }
 

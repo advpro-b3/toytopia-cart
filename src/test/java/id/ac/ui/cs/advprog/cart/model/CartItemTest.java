@@ -64,7 +64,6 @@ public class CartItemTest {
 
     @Test
     public void testCartItemBuilderWithNegativePrice() {
-        // Test building with a negative price
         assertThrows(IllegalArgumentException.class, () -> {
             new CartItemBuilder().withPrice(-10.99).build();
         });
@@ -72,9 +71,30 @@ public class CartItemTest {
 
     @Test
     public void testCartItemBuilderWithNegativeQuantity() {
-        // Test building with a negative quantity
         assertThrows(IllegalArgumentException.class, () -> {
             new CartItemBuilder().withQuantity(-2).build();
         });
+    }
+    @Test
+    void testSetId() {
+        CartItem cartItem = new CartItem();
+        Long id = 123L;
+        cartItem.setId(id);
+        assertEquals(id, cartItem.getId());
+    }
+
+    @Test
+    void testSetShoppingCart() {
+        CartItem cartItem = new CartItem();
+        ShoppingCart shoppingCart = new ShoppingCart();
+        cartItem.setShoppingCart(shoppingCart);
+        assertEquals(shoppingCart, cartItem.getShoppingCart());
+    }
+    @Test
+    void testGetShoppingCart() {
+        CartItem cartItem = new CartItem();
+        ShoppingCart shoppingCart = new ShoppingCart();
+        cartItem.setShoppingCart(shoppingCart);
+        assertEquals(shoppingCart, cartItem.getShoppingCart());
     }
 }
