@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ShoppingCartServiceImpl implements ShoppingCartService {
@@ -37,7 +38,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public CartItem createOrUpdateCartItemToShoppingCart(Long userId, CartItem cartItem) {
-//        ShoppingCart cart = findShoppingCartByUserId(Long userId);
         ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
         CartItem existingItem = cart.getCartItemMap().get(cartItem.getProductId());
 
@@ -71,13 +71,16 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return new ArrayList<>(cart.getCartItemMap().values());
     }
 
+
     @Override
-    public ShoppingCart getShoppingCartInformation(Long userId) {
-        ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
-        if (cart == null) {
-            throw new RuntimeException("No shopping cart found for user with ID " + userId);
-        }
-        return cart;
+    public CompletableFuture<ShoppingCart> getShoppingCartInformation(Long userId) {
+        return CompletableFuture.supplyAsync(() -> {
+            ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
+            if (cart == null) {
+                throw new RuntimeException("No shopping cart found for user with ID " + userId);
+            }
+            return cart;
+        });
     }
 
     @Override
