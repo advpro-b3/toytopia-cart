@@ -64,7 +64,6 @@ public class CartItemTest {
 
     @Test
     public void testCartItemBuilderWithNegativePrice() {
-        // Test building with a negative price
         assertThrows(IllegalArgumentException.class, () -> {
             new CartItemBuilder().withPrice(-10.99).build();
         });
@@ -72,7 +71,6 @@ public class CartItemTest {
 
     @Test
     public void testCartItemBuilderWithNegativeQuantity() {
-        // Test building with a negative quantity
         assertThrows(IllegalArgumentException.class, () -> {
             new CartItemBuilder().withQuantity(-2).build();
         });

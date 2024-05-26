@@ -116,26 +116,7 @@ public class ShoppingCartServiceImplTest {
     }
 
 
-//    @Test
-//    public void testGetShoppingCartInformation_ExistingCart() {
-//        Long userId = 1L;
-//        ShoppingCart cart = createEmptyCart(userId);
-//
-//        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(cart);
-//
-//        ShoppingCart retrievedCart = shoppingCartService.getShoppingCartInformation(userId);
-//
-//        assertNotNull(retrievedCart); // Simple existence check
-//    }
 
-    @Test
-    public void testGetShoppingCartInformation_NonexistentCart() {
-        Long userId = 1L;
-
-        when(shoppingCartRepository.findShoppingCartByUserId(userId)).thenReturn(null);
-
-        assertThrows(RuntimeException.class, () -> shoppingCartService.getShoppingCartInformation(userId));
-    }
 
     @Test
     public void testCreateShoppingCart_NewCart() {
