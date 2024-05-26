@@ -5,6 +5,7 @@ import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface ShoppingCartService {
     List<ShoppingCart> getAllCarts();
@@ -14,7 +15,7 @@ public interface ShoppingCartService {
     List <CartItem> getCartItemsFromShoppingCart(Long userId);
     ShoppingCart createShoppingCart(Long userId);
 
-    ShoppingCart getShoppingCartInformation(Long userId);
+    CompletableFuture<ShoppingCart> getShoppingCartInformation(Long userId);
     ShoppingCart updateShoppingCart(ShoppingCart shoppingCart);
 
 }
