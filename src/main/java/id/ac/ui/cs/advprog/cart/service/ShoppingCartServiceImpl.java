@@ -81,12 +81,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public void createShoppingCart(Long userId) {
+    public ShoppingCart createShoppingCart(Long userId) {
+        if (shoppingCartRepository.existsById(userId)) {
+            return null;
+        }
+
         ShoppingCart cart = new ShoppingCartBuilder()
                 .withCartItem(new HashMap<>())
                 .withUserId(userId)
                 .build();
-        shoppingCartRepository.save(cart);
+
+        return shoppingCartRepository.save(cart);
     }
 
 }

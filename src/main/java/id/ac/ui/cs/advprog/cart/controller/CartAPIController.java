@@ -1,15 +1,19 @@
 package id.ac.ui.cs.advprog.cart.controller;
 
+import id.ac.ui.cs.advprog.cart.dto.UserResponse;
 import id.ac.ui.cs.advprog.cart.model.CartItem;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 import id.ac.ui.cs.advprog.cart.service.ShoppingCartService;
 import com.fasterxml.jackson.databind.JsonNode;
+import id.ac.ui.cs.advprog.cart.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -17,6 +21,36 @@ public class CartAPIController {
 
     @Autowired
     private ShoppingCartService shoppingCartService;
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/create")
+    public ResponseEntity<Object> createShoppingCart(@RequestHeader("Authorization") String token) {
+        CompletableFuture<UserResponse> userFuture = userService.getUsernameWithToken(token);
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            UserResponse user = userFuture.get();
+            Long userId = user.getId();
+
+            ShoppingCart cart = shoppingCartService.createShoppingCart(userId);
+
+            if (cart != null) {
+                response.put("message", "Shopping cart created successfully");
+                response.put("userId", cart.getUserId());
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            } else {
+                response.put("message", "Shopping cart already exists for user");
+                response.put("userId", userId);
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            response.put("message", "Error occurred while retrieving user information");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 
 
     @GetMapping("/all")
