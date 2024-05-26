@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.cart.service;
 
 import id.ac.ui.cs.advprog.cart.model.CartItem;
+import id.ac.ui.cs.advprog.cart.model.Product;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCartBuilder;
 import id.ac.ui.cs.advprog.cart.repository.CartItemRepository;
@@ -96,6 +97,31 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         return shoppingCartRepository.save(cart);
     }
+
+    @Override
+    public CartItem addItemToCart(Long userId, Product product) {
+        ShoppingCart cart = shoppingCartRepository.findShoppingCartByUserId(userId);
+        if (cart == null) {
+            throw new IllegalArgumentException("Shopping cart not found for user ID: " + userId);
+        }
+
+        CartItem existingItem = cart.getCartItemMap().get(product.getId());
+
+        if (existingItem == null) {
+            Long newId = (long) cart.getCartItemMap().size() + 1;
+            CartItem newItem = new CartItem(newId, product.getId(), product.getName(), 1, product.getPrice());
+            newItem.setShoppingCart(cart);
+            cart.getCartItemMap().put(product.getId(), newItem);
+            shoppingCartRepository.save(cart);
+            return newItem;
+        } else {
+            existingItem.setQuantity(existingItem.getQuantity() + 1);
+            shoppingCartRepository.save(cart);
+            return existingItem;
+        }
+    }
+
+
 
 }
 
