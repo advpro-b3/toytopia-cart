@@ -75,4 +75,26 @@ public class CartItemTest {
             new CartItemBuilder().withQuantity(-2).build();
         });
     }
+    @Test
+    void testSetId() {
+        CartItem cartItem = new CartItem();
+        Long id = 123L;
+        cartItem.setId(id);
+        assertEquals(id, cartItem.getId());
+    }
+
+    @Test
+    void testSetShoppingCart() {
+        CartItem cartItem = new CartItem();
+        ShoppingCart shoppingCart = new ShoppingCart();
+        cartItem.setShoppingCart(shoppingCart);
+        assertEquals(shoppingCart, cartItem.getShoppingCart());
+    }
+    @Test
+    void testGetShoppingCart() {
+        CartItem cartItem = new CartItem();
+        ShoppingCart shoppingCart = new ShoppingCart();
+        cartItem.setShoppingCart(shoppingCart);
+        assertEquals(shoppingCart, cartItem.getShoppingCart());
+    }
 }

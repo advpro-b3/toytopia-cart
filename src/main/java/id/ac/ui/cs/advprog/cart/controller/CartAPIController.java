@@ -22,13 +22,13 @@ import java.util.concurrent.ExecutionException;
 public class CartAPIController {
 
     @Autowired
-    private ShoppingCartService shoppingCartService;
+    ShoppingCartService shoppingCartService;
 
     @Autowired
-    private UserService userService;
+    UserService userService;
 
     @Autowired
-    private APIProductService productService;
+    APIProductService productService;
 
     @PostMapping("/create")
     public ResponseEntity<Object> createShoppingCart(@RequestHeader("Authorization") String token) {
