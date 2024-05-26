@@ -11,8 +11,6 @@ sonar {
         property("sonar.projectKey", "shanahandnlf-adpro-b3-cart")
         property("sonar.organization", "shanahandnlf")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.junit.reportPaths", "$buildDir/test-results/test")
-        property("sonar.jacoco.reportPaths", "$buildDir/jacoco/test.exec")
     }
 }
 
