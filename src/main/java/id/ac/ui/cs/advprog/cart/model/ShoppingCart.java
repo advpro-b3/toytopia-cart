@@ -29,13 +29,7 @@ public class ShoppingCart {
         this.voucherService = new VoucherService(new RestTemplate());
     }
 
-    public void addItem(CartItem item) {
-        cartItemMap.put(item.getProductId(), item);
-    }
 
-    public void removeItem(String productId) {
-        cartItemMap.remove(productId);
-    }
 
     public double calculateTotalPrice(String voucherCode) {
         double total = cartItemMap.values().stream()
@@ -67,13 +61,6 @@ public class ShoppingCart {
         return total;
     }
 
-    public Map<String, CartItem> getAllCartItem() {
-        return cartItemMap;
-    }
-
-    public CartItem addItemToCart(CartItem item) {
-        return cartItemMap.put(item.getProductId(), item);
-    }
 
 
 }

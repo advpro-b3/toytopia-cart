@@ -4,16 +4,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.cart.dto.UserResponse;
 import id.ac.ui.cs.advprog.cart.enums.Availability;
 import id.ac.ui.cs.advprog.cart.model.CartItem;
 import id.ac.ui.cs.advprog.cart.model.Product;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
+import id.ac.ui.cs.advprog.cart.model.ShoppingCartBuilder;
 import id.ac.ui.cs.advprog.cart.service.APIProductService;
 import id.ac.ui.cs.advprog.cart.service.ShoppingCartService;
 import id.ac.ui.cs.advprog.cart.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -23,11 +28,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class CartAPIControllerTest {
-
+    @Mock
     private ShoppingCartService shoppingCartService;
+    @Mock
     private UserService userService;
+    @Mock
     private APIProductService productService;
+    @InjectMocks
     private CartAPIController cartAPIController;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setUp() {
@@ -38,6 +47,8 @@ public class CartAPIControllerTest {
         cartAPIController.shoppingCartService = shoppingCartService;
         cartAPIController.userService = userService;
         cartAPIController.productService = productService;
+        MockitoAnnotations.openMocks(this);
+        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -186,9 +197,6 @@ public class CartAPIControllerTest {
     }
 
 
-
-
-
     @Test
     public void testAddItemToCart_ProductNotFound() throws ExecutionException, InterruptedException {
         Long userId = 1L;
@@ -243,4 +251,90 @@ public class CartAPIControllerTest {
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assertEquals("Shopping cart not found", responseBody.get("message"));
     }
+
+    @Test
+    public void testCreateShoppingCart() throws Exception {
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(1L);
+        CompletableFuture<UserResponse> userFuture = CompletableFuture.completedFuture(userResponse);
+
+        when(userService.getUsernameWithToken(anyString())).thenReturn(userFuture);
+
+        ShoppingCart cart = new ShoppingCartBuilder().withUserId(1L).build();
+        when(shoppingCartService.createShoppingCart(1L)).thenReturn(cart);
+
+        ResponseEntity<Object> response = cartAPIController.createShoppingCart("token");
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateCartItem() throws Exception {
+        Long userId = 1L;
+        String jsonString = "{\"productId\":\"1\", \"quantity\":10}";
+        JsonNode requestBody = objectMapper.readTree(jsonString);
+
+        ShoppingCart cart = new ShoppingCartBuilder().withUserId(userId).build();
+        CartItem item = new CartItem(1L, "1", "Test Product", 1, 100.0);
+        cart.getCartItemMap().put("1", item);
+
+        when(shoppingCartService.getShoppingCartInformation(userId)).thenReturn(CompletableFuture.completedFuture(cart));
+
+        ResponseEntity<Object> response = cartAPIController.updateCartItem(userId, requestBody).get();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateAllCartItems() throws Exception {
+        Long userId = 1L;
+        String jsonString = "{\"cartItemMap\":{\"1\":{\"productId\":\"1\", \"quantity\":10}}}";
+        JsonNode requestBody = objectMapper.readTree(jsonString);
+
+        ShoppingCart cart = new ShoppingCartBuilder().withUserId(userId).build();
+        CartItem item = new CartItem(1L, "1", "Test Product", 1, 100.0);
+        cart.getCartItemMap().put("1", item);
+
+        when(shoppingCartService.getShoppingCartInformation(userId)).thenReturn(CompletableFuture.completedFuture(cart));
+
+        ResponseEntity<Object> response = cartAPIController.updateAllCartItems(userId, requestBody).get();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testAddItemToCart() {
+        Long userId = 1L;
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("productId", "1");
+
+        ShoppingCart cart = new ShoppingCartBuilder().withUserId(userId).build();
+        Product product = new Product.ProductBuilder("Test Product")
+                .setDescription("Description")
+                .setPrice(100)
+                .setStock(10)
+                .setDiscount(0)
+                .setAvailability("In Stock")
+                .build();
+        product.setId("1");
+        CartItem cartItem = new CartItem(1L, "1", "Test Product", 1, 100.0);
+
+        when(shoppingCartService.getShoppingCartInformation(userId)).thenReturn(CompletableFuture.completedFuture(cart));
+        when(productService.getProductById("1")).thenReturn(product);
+        when(shoppingCartService.addItemToCart(anyLong(), any(Product.class))).thenReturn(cartItem);
+
+        ResponseEntity<Object> response = cartAPIController.addItemToCart(userId, requestBody).join();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testDeleteAllCartItem() {
+        Long userId = 1L;
+        ShoppingCart cart = new ShoppingCartBuilder().withUserId(userId).build();
+        cart.getCartItemMap().put("1", new CartItem(1L, "1", "Test Product", 1, 100.0));
+
+        when(shoppingCartService.getShoppingCartInformation(userId)).thenReturn(CompletableFuture.completedFuture(cart));
+
+        ResponseEntity<Object> response = cartAPIController.deleteAllCartItem(userId).join();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+
 }
