@@ -7,6 +7,7 @@ public enum Availability {
     PREORDER("PREORDER"),
     READY("READY");
 
+
     private final String value;
 
     Availability(String value) {
