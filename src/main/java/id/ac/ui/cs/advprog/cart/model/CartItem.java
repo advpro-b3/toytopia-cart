@@ -60,11 +60,6 @@ public class CartItem {
         setQuantity(quantity);
     }
 
-
-
-    public Long getCartItemId() {
-        return id;
-    }
 }
 
 
