@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.cart.service;
 
 import id.ac.ui.cs.advprog.cart.model.CartItem;
+import id.ac.ui.cs.advprog.cart.model.Product;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
 
 
@@ -17,5 +18,8 @@ public interface ShoppingCartService {
 
     CompletableFuture<ShoppingCart> getShoppingCartInformation(Long userId);
     ShoppingCart updateShoppingCart(ShoppingCart shoppingCart);
+
+    CartItem addItemToCart(Long userId, Product product);
+
 
 }

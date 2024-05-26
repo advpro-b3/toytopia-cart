@@ -2,7 +2,9 @@ package id.ac.ui.cs.advprog.cart.controller;
 
 import id.ac.ui.cs.advprog.cart.dto.UserResponse;
 import id.ac.ui.cs.advprog.cart.model.CartItem;
+import id.ac.ui.cs.advprog.cart.model.Product;
 import id.ac.ui.cs.advprog.cart.model.ShoppingCart;
+import id.ac.ui.cs.advprog.cart.service.APIProductService;
 import id.ac.ui.cs.advprog.cart.service.ShoppingCartService;
 import com.fasterxml.jackson.databind.JsonNode;
 import id.ac.ui.cs.advprog.cart.service.UserService;
@@ -24,6 +26,9 @@ public class CartAPIController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private APIProductService productService;
 
     @PostMapping("/create")
     public ResponseEntity<Object> createShoppingCart(@RequestHeader("Authorization") String token) {
@@ -194,31 +199,38 @@ public class CartAPIController {
                     Map<String, Object> response = new HashMap<>();
                     if (cart != null) {
                         String productId = (String) requestBody.get("productId");
-                        String productName = (String) requestBody.get("name");
-                        int quantity = (int) requestBody.get("quantity");
-                        double price = (double) requestBody.get("price");
-                        CartItem item = cart.getCartItemMap().get(productId);
-                        if (item != null) {
-                            item.setQuantity(item.getQuantity() + quantity);
+                        Product product = productService.getProductById(productId);
+
+                        if (product != null) {
+                            CartItem updatedItem = shoppingCartService.addItemToCart(userId, product);
+
+                            if (updatedItem != null) {
+                                response.put("message", "Item added to cart successfully");
+                                response.put("userId", userId);
+                                response.put("productId", product.getId());
+                                response.put("name", product.getName());
+                                response.put("quantity", updatedItem.getQuantity());
+                                response.put("price", product.getPrice());
+                                return ResponseEntity.ok(response);
+                            } else {
+                                response.put("message", "Item was removed from cart because quantity is zero");
+                                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                            }
                         } else {
-                            Long id = (long) cart.getCartItemMap().size();
-                            item = new CartItem(id++, productId, productName, quantity, price);
-                            cart.getCartItemMap().put(productId, item);
+                            response.put("message", "Product not found");
+                            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                         }
-                        shoppingCartService.updateShoppingCart(cart);
-                        response.put("message", "Item added to cart successfully");
-                        response.put("userId", userId);
-                        response.put("productId", productId);
-                        response.put("name", productName);
-                        response.put("quantity", quantity);
-                        response.put("price", price);
-                        return ResponseEntity.ok(response);
                     } else {
                         response.put("message", "Shopping cart not found");
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                     }
                 });
     }
+
+
+
+
+
 
 }
 
